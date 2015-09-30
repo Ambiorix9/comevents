@@ -148,7 +148,29 @@ exports.update = function(req, res, next){
       workflow.outcome.record = event;
       req.flash('success', 'Event Updated');
       res.location('/event/show/' + req.params.id);
-      res.redirect('/event/show/' + req.params.id);
+      res.redirect('/events/show/' + req.params.id);
+    });
+  });
+
+  workflow.emit('validate');
+};
+
+exports.delete = function(req, res, next){
+  var workflow = req.app.utility.workflow(req, res);
+
+  workflow.on('validate', function() {
+	  console.log('In workflow');
+    workflow.emit('deleteEvent');
+  });
+
+  workflow.on('deleteEvent', function(err) {
+    req.app.db.models.Event.findByIdAndRemove(req.params.id, function(err, event) {
+      if (err) {
+        return workflow.emit('exception', err);
+      }
+      req.flash('success', "Event Deleted");
+      res.location('/events');
+      res.redirect('/events');
     });
   });
 
